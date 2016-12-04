@@ -1,5 +1,5 @@
 (ns redstone.core
-  (:require [aleph.tcp :as tcp :refer [tcp-client]]
+  (:require [aleph.tcp :as tcp :refer [client]]
             [lamina.core :refer [wait-for-result enqueue wait-for-message]]
             [gloss.core :refer [string]]
             [clojure.string :as s]
@@ -10,7 +10,7 @@
                   :port 4711
                   :frame (string :utf-8 :delimiters ["\n"])}]
     (wait-for-result
-     (tcp-client (merge defaults server)))))
+     (client (merge defaults server)))))
 
 (def connection
   (memoize connect!))
