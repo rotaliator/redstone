@@ -1,5 +1,5 @@
 {:paths ["src" "resources"]
  :deps
- {aleph/aleph   {:mvn/version "0.4.1"}
+ {aleph/aleph   {:mvn/version "0.4.7"}
   lamina/lamina {:mvn/version "0.5.6"}
-  gloss/gloss   {:mvn/version "0.2.5"}}}
+  gloss/gloss   {:mvn/version "0.2.6"}}}
