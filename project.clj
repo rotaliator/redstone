@@ -3,7 +3,6 @@
   :url "http://github.com/henrygarner/redstone"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.5.1"]
-                 [aleph "0.4.1"]
-                 [lamina "0.5.6"]
-                 [gloss "0.2.5"]])
+  :dependencies [[org.clojure/clojure "1.10.3"]
+                 [aleph "0.4.7"]
+                 [gloss "0.2.6"]])

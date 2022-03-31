@@ -1,6 +1,6 @@
 (ns redstone.blocks
   (:require [clojure.java.io :refer [resource]]
-            [clojure.tools.reader.edn :as edn]))
+            [clojure.edn :as edn]))
 
 (def synonyms
   {:white-wool      :wool
@@ -26,7 +26,7 @@
 (def name->block
   (let [blocks-map (into {} (map (juxt :name identity) block-data))
         block-synonyms (into {} (map (fn [[k v]] [k (get blocks-map v)]) synonyms))]
-    (merge block-synonyms blocks-map))) 
+    (merge block-synonyms blocks-map)))
 
 (def id->block
   (->> block-data

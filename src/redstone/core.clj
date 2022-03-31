@@ -1,16 +1,37 @@
 (ns redstone.core
-  (:require [aleph.tcp :as tcp :refer [client]]
-            [lamina.core :refer [wait-for-result enqueue wait-for-message]]
-            [gloss.core :refer [string]]
-            [clojure.string :as s]
+  (:require [aleph.tcp :as tcp]
+            [gloss.core :as gloss]
+            [gloss.io :as io]
+            [clojure.string :as str]
+            [manifold.stream :as s]
+            [manifold.deferred :as d]
             [redstone.blocks :refer [id->block name->block]]))
 
-(defn connect! [server]
+(def timeout 3000)
+
+(def protocol
+  (gloss/compile-frame
+   (gloss/delimited-frame ["\n"]
+                          (gloss/string :utf-8))))
+
+(defn wrap-duplex-stream
+  [protocol s]
+  (let [out (s/stream)]
+    (s/connect
+     (s/map #(io/encode protocol %) out)
+     s)
+    (s/splice
+     out
+     (io/decode-stream s protocol))))
+
+
+(defn connect!
+  [server]
   (let [defaults {:host "localhost"
-                  :port 4711
-                  :frame (string :utf-8 :delimiters ["\n"])}]
-    (wait-for-result
-     (client (merge defaults server)))))
+                  :port 4711}]
+    @(d/chain (tcp/client (merge defaults server))
+             #(wrap-duplex-stream protocol %))))
+
 
 (def connection
   (memoize connect!))
@@ -42,20 +63,22 @@
 
 (defn send! [server command]
   (-> (connection server)
-      (enqueue command)))
+      (s/try-put! command timeout)
+      deref))
 
 (defn receive! [server]
   (-> (connection server)
-      (wait-for-message)))
+      (s/try-take! timeout)
+      deref))
 
 (defn send-receive! [server command]
-  (do (send! server command)
-      (receive! server)))
+  (send! server command)
+  (receive! server))
 
 (defn format-rpc [rpc args]
   (->> (or args [])
        as-rpc-arg
-       (s/join ",")
+       (str/join ",")
        (format "%s(%s)" rpc)))
 
 (defn command [rpc]
@@ -80,8 +103,8 @@
 
 (def block-hits!
   (query "events.block.hits"
-         #(for [hit (remove s/blank? (s/split % #"\|"))]
-            (let [parsed (->> (s/split hit #",")
+         #(for [hit (remove str/blank? (str/split % #"\|"))]
+            (let [parsed (->> (str/split hit #",")
                               (map parse-long)
                               (zipmap [:x :y :z :face :player-id]))]
               (-> parsed
